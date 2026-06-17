@@ -1,0 +1,38 @@
+name: V4NGRD poll
+
+on:
+  schedule:
+    - cron: "*/2 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: v4ngrd-state
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run bot cycle
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: python group_manager.py
+
+      - name: Commit and push state
+        run: |
+          git config user.name "v4ngrd-bot"
+          git config user.email "v4ngrd-bot@users.noreply.github.com"
+          for f in group_state.json federation_state.json data/events; do
+            [ -e "$f" ] && git add "$f"
+          done
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update state [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
