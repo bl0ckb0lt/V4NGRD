@@ -7,6 +7,9 @@ on:
     - cron: "*/2 * * * *"
   workflow_dispatch: {}
 
+permissions:
+  contents: write
+
 concurrency:
   group: v4ngrd-state
   cancel-in-progress: false
