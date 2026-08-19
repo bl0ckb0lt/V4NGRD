@@ -79,42 +79,164 @@ COMMANDS = {
 }
 
 _HELP_TEXT = (
-    "<b>V4NGRD — Group Manager</b>\n\n"
-    "Add me to a group and make me an admin to get started.\n\n"
-    "<b>Moderation</b>\n"
-    "/ban /unban /kick /mute /unmute /warn /unwarn /warns\n\n"
-    "<b>Settings</b>\n"
-    "/setwelcome /setgoodbye /lock /unlock /locks\n"
-    "/addblacklist /rmblacklist /blacklist\n"
-    "/setflood /setwarnlimit /setwarnaction /setwarnexpiry\n"
-    "/setlog /captcha /slowmode /setdrip /cas\n\n"
-    "<b>Scheduling</b>\n"
-    "/schedule &lt;when&gt; &lt;text&gt; — when: 30m 2h 1d or YYYY-MM-DD HH:MM\n"
-    "/schedules /cancelschedule &lt;id&gt;\n\n"
-    "<b>Notes &amp; Filters</b>\n"
-    "/save /get /notes /clear /filter /stop /filters\n\n"
-    "<b>Analytics (admin only)</b>\n"
-    "/stats /activity /top /modlog /insights /churnrisk\n"
-    "/health /activation /segment [type]\n"
-    "/export [days] /cohorts /funnel [weeks] /distinct [days]\n"
-    "/digestnow [daily|weekly]\n\n"
-    "<b>Federations</b>\n"
-    "/newfed /joinfed /leavefed /fban /unfban /fedinfo\n\n"
-    "<b>Karma</b>\n"
-    "/rep /topkarma"
+    "<b>V4NGRD — Premium Group Manager</b>\n"
+    "Add me to a group, make me admin, then use these commands:\n"
+    "Send /help &lt;command&gt; for details on any command.\n\n"
+
+    "<b>🔨 Moderation</b>\n"
+    "/ban — Permanently ban a user (reply or /ban @user)\n"
+    "/unban — Lift a ban\n"
+    "/kick — Remove a user (they can rejoin)\n"
+    "/mute — Silence a user (reply or /mute @user [1h/1d])\n"
+    "/unmute — Restore a muted user's voice\n"
+    "/warn — Issue a warning; auto-punish at the limit\n"
+    "/unwarn — Remove the most recent warning\n"
+    "/warns — Show a user's current warning count\n\n"
+
+    "<b>⚙️ Group Settings</b>\n"
+    "/setwelcome — Set the join message ({first_name}, {group}, {count})\n"
+    "/setgoodbye — Set the leave message\n"
+    "/lock /unlock — Block a content type (photo, video, sticker, link…)\n"
+    "/locks — List all active content locks\n"
+    "/addblacklist /rmblacklist — Add or remove a banned word/phrase\n"
+    "/blacklist — View all banned words\n"
+    "/setflood — Auto-action after N messages in a window (e.g. /setflood 5 10s)\n"
+    "/setwarnlimit — How many warns before punishment (default 3)\n"
+    "/setwarnaction — Punishment at warn limit: ban/kick/mute\n"
+    "/setwarnexpiry — Warns expire after N days (0 = never)\n"
+    "/setlog — Set a channel for mod-action logs\n"
+    "/captcha — Toggle join captcha on/off\n"
+    "/slowmode — Set slow mode delay (off/10s/30s/1m/5m/15m/1h)\n"
+    "/setdrip — Enable onboarding DMs at day 3 and day 7 for new members\n"
+    "/cas — Enable/disable CAS anti-spam auto-ban\n\n"
+
+    "<b>📅 Scheduled Messages</b>\n"
+    "/schedule &lt;when&gt; &lt;text&gt; — Post a message later\n"
+    "  when: 30m · 2h · 1d · 1w · or YYYY-MM-DD HH:MM\n"
+    "/schedules — List all pending scheduled messages\n"
+    "/cancelschedule &lt;id&gt; — Cancel a scheduled message by ID\n\n"
+
+    "<b>📝 Notes &amp; Auto-Replies</b>\n"
+    "/save &lt;name&gt; &lt;text&gt; — Save a note (reply to a message to save it)\n"
+    "/get &lt;name&gt; — Retrieve a saved note\n"
+    "/notes — List all saved notes\n"
+    "/clear &lt;name&gt; — Delete a note\n"
+    "/filter &lt;keyword&gt; &lt;reply&gt; — Auto-reply when a keyword is sent\n"
+    "/stop &lt;keyword&gt; — Remove an auto-reply filter\n"
+    "/filters — List all active filters\n\n"
+
+    "<b>📊 Analytics (admin only)</b>\n"
+    "/stats — Member count, messages, and activity summary\n"
+    "/activity — Daily message chart for the past 7 days\n"
+    "/top — Top 10 most active members\n"
+    "/modlog — Recent moderation actions\n"
+    "/insights — Churn risk and engagement signals\n"
+    "/churnrisk — Members who went quiet after being active\n"
+    "/health — Community health score (0–100) with breakdown\n"
+    "/activation — % of new members who posted within 24h/72h/7d\n"
+    "/segment — Members grouped by activity: new/engaged/atrisk/dormant/churned\n"
+    "/distinct [days] — Unique posters in the last N days (default 7)\n"
+    "/export [days] — Download a CSV of daily stats\n"
+    "/cohorts — CSV of weekly join cohorts vs activity at D7/D14/D30\n"
+    "/funnel [weeks] — Activation funnel from join to first post\n"
+    "/digestnow [daily|weekly] — Send the digest report immediately\n\n"
+
+    "<b>🔗 Federations</b>\n"
+    "/newfed &lt;name&gt; — Create a ban federation\n"
+    "/joinfed &lt;id&gt; — Join your group to a federation\n"
+    "/leavefed — Leave the current federation\n"
+    "/fban @user — Federation-ban a user across all member groups\n"
+    "/unfban @user — Lift a federation ban\n"
+    "/fedinfo — Show federation details and member groups\n\n"
+
+    "<b>⭐ Karma</b>\n"
+    "/rep @user — Give reputation to a member\n"
+    "/topkarma — Leaderboard of top-reputation members"
 )
+
+_COMMAND_HELP = {
+    "ban": "/ban — Reply to a message or use /ban @username.\nPermanently removes the user and prevents them from rejoining.",
+    "unban": "/unban @username or reply — Lifts a ban so the user can rejoin.",
+    "kick": "/kick — Removes the user. Unlike /ban, they can come back by joining again.",
+    "mute": "/mute [@user] [duration] — Silences a user.\nDuration examples: 1h, 2d, 30m. Omit for permanent mute.",
+    "unmute": "/unmute — Reply to a muted user to restore their ability to send messages.",
+    "warn": "/warn — Reply to a message to warn its author.\nAt the warn limit (set with /setwarnlimit), the configured action fires automatically.",
+    "unwarn": "/unwarn — Reply to a user to remove their most recent warning.",
+    "warns": "/warns [@user] — Shows how many warnings a user has and the current limit.",
+    "setwelcome": "/setwelcome &lt;message&gt; — Sets the message sent when someone joins.\nVariables: {first_name} {last_name} {username} {group} {count}",
+    "setgoodbye": "/setgoodbye &lt;message&gt; — Sets the message sent when someone leaves.\nSame variables as /setwelcome.",
+    "lock": "/lock &lt;type&gt; — Block a content type for non-admins.\nTypes: photo video audio document sticker gif poll link forward voice",
+    "unlock": "/unlock &lt;type&gt; — Remove a content lock.",
+    "locks": "/locks — Lists every content type that is currently locked.",
+    "addblacklist": "/addblacklist &lt;word or phrase&gt; — Any message containing this text is deleted automatically.",
+    "rmblacklist": "/rmblacklist &lt;word&gt; — Removes a word from the blacklist.",
+    "blacklist": "/blacklist — Shows all currently banned words/phrases.",
+    "setflood": "/setflood &lt;count&gt; [window] — Auto-punish if a user sends count messages within window seconds.\nExample: /setflood 5 10",
+    "setwarnlimit": "/setwarnlimit &lt;n&gt; — Set how many warnings trigger the punishment (default 3).",
+    "setwarnaction": "/setwarnaction &lt;ban|kick|mute&gt; — What happens when the warn limit is reached.",
+    "setwarnexpiry": "/setwarnexpiry &lt;days&gt; — Warnings older than this many days are ignored (0 = warnings never expire).",
+    "setlog": "/setlog &lt;channel_id&gt; — Forward mod actions (ban, kick, warn, etc.) to this channel.",
+    "captcha": "/captcha &lt;on|off&gt; — Require new members to click a button to prove they're human.",
+    "slowmode": "/slowmode &lt;off|10s|30s|1m|5m|15m|1h&gt; — Sets how long members must wait between messages.",
+    "setdrip": "/setdrip &lt;on|off&gt; — When on, the bot DMs new members who haven't posted yet at day 3 and day 7 with onboarding tips.",
+    "cas": "/cas &lt;on|off&gt; — Combot Anti-Spam integration. Automatically bans users flagged in the CAS database the moment they join.",
+    "schedule": "/schedule &lt;when&gt; &lt;message text&gt; — Schedule a message to be posted in this group.\nwhen examples: 30m · 2h · 1d · 1w · 2026-12-31 18:00",
+    "schedules": "/schedules — Lists all messages waiting to be posted, with their IDs and scheduled times.",
+    "cancelschedule": "/cancelschedule &lt;id&gt; — Cancels a scheduled message before it fires.",
+    "save": "/save &lt;name&gt; [text] — Save a note. Reply to a message to save that message as the note.",
+    "get": "/get &lt;name&gt; — Posts the saved note in the chat.",
+    "notes": "/notes — Lists all saved note names.",
+    "clear": "/clear &lt;name&gt; — Deletes a saved note.",
+    "filter": "/filter &lt;keyword&gt; &lt;reply&gt; — When anyone sends a message containing keyword, the bot replies with reply.",
+    "stop": "/stop &lt;keyword&gt; — Removes an auto-reply filter.",
+    "filters": "/filters — Lists all active keyword filters.",
+    "stats": "/stats — Shows member count, total messages, and a quick activity summary.",
+    "activity": "/activity — Bar chart of daily message counts for the past 7 days.",
+    "top": "/top — The 10 most active members by message count.",
+    "modlog": "/modlog — Recent bans, kicks, mutes, and warns with dates.",
+    "insights": "/insights — Highlights members at risk of churning and other engagement signals.",
+    "churnrisk": "/churnrisk — Members who posted regularly but have gone quiet for 14+ days.",
+    "health": "/health — A 0–100 community health score based on growth, activation, reply depth, and posting breadth.",
+    "activation": "/activation — What % of members who joined in the last 30 days sent their first message within 24h, 72h, and 7 days.",
+    "segment": "/segment [new|engaged|atrisk|dormant|churned] — Segment members by activity.\nnew: joined ≤7d · engaged: posted this week · atrisk: active then quiet 14+d · dormant: never posted >30d · churned: left after posting",
+    "distinct": "/distinct [days] — Count of unique members who posted at least once in the last N days (default 7).",
+    "export": "/export [days] — Sends a CSV file with daily stats (joins, leaves, messages, unique posters, replies). Default 30 days.",
+    "cohorts": "/cohorts — CSV of weekly join cohorts showing how many members from each week were active at D7, D14, and D30.",
+    "funnel": "/funnel [weeks] — Shows what % of new members reached each activation milestone (joined → first message → 3rd message).",
+    "digestnow": "/digestnow [daily|weekly] — Immediately sends the activity digest report instead of waiting for the scheduled time.",
+    "newfed": "/newfed &lt;name&gt; — Creates a new ban federation with you as the owner. Share the federation ID with other group admins.",
+    "joinfed": "/joinfed &lt;federation_id&gt; — Links this group to a federation so federation bans apply here.",
+    "leavefed": "/leavefed — Disconnects this group from the federation.",
+    "fban": "/fban @user [reason] — Bans a user from all groups in the federation simultaneously.",
+    "unfban": "/unfban @user — Lifts a federation ban so the user can rejoin federation groups.",
+    "fedinfo": "/fedinfo — Shows the federation name, ID, owner, and list of member groups.",
+    "rep": "/rep @user — Give +1 reputation to a member (reply or mention).",
+    "topkarma": "/topkarma — Shows the 10 members with the highest reputation in this group.",
+}
 
 
 def handle_private(message):
     text = message.get("text") or ""
     chat_id = message["chat"]["id"]
     print(f"[private] chat_id={chat_id} text={text!r}", flush=True)
-    if text.startswith("/start") or text.startswith("/help"):
-        tg.api_call("sendMessage", {
-            "chat_id": chat_id,
-            "text": _HELP_TEXT,
-            "parse_mode": "HTML",
-        })
+    parts = text.split()
+    if not parts:
+        return
+    cmd = parts[0].split("@")[0].lower()
+    if cmd == "/start":
+        tg.api_call("sendMessage", {"chat_id": chat_id, "text": _HELP_TEXT, "parse_mode": "HTML"})
+    elif cmd == "/help":
+        if len(parts) > 1:
+            key = parts[1].lstrip("/").lower()
+            detail = _COMMAND_HELP.get(key)
+            if detail:
+                tg.api_call("sendMessage", {"chat_id": chat_id, "text": detail, "parse_mode": "HTML"})
+            else:
+                tg.api_call("sendMessage", {"chat_id": chat_id,
+                    "text": f"No help entry for <code>{key}</code>. Send /start to see all commands.",
+                    "parse_mode": "HTML"})
+        else:
+            tg.api_call("sendMessage", {"chat_id": chat_id, "text": _HELP_TEXT, "parse_mode": "HTML"})
 
 
 def handle_message(state, message):
