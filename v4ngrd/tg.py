@@ -177,6 +177,13 @@ def set_slow_mode(chat_id, slow_mode_delay):
     return try_call("setChatSlowModeDelay", {"chat_id": chat_id, "slow_mode_delay": slow_mode_delay})
 
 
+def set_my_commands(commands):
+    """Register bot commands with Telegram (shown in the / picker).
+    commands: list of {"command": str, "description": str}
+    """
+    return try_call("setMyCommands", {"commands": json.dumps(commands)})
+
+
 def is_admin(chat_id, user_id):
     member = get_chat_member(chat_id, user_id)
     if not member:

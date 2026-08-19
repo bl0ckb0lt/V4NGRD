@@ -78,6 +78,107 @@ COMMANDS = {
     "topkarma": cmd_karma.cmd_topkarma,
 }
 
+_WELCOME_TEXT = (
+    "<b>V4NGRD — Premium Group Manager</b>\n\n"
+    "Add me to a group and make me an admin to get started.\n\n"
+    "Choose a category below to see all commands, "
+    "or send /help &lt;command&gt; for details on any single command."
+)
+
+_MAIN_MENU_KEYBOARD = {"inline_keyboard": [
+    [{"text": "🔨 Moderation",      "callback_data": "menu:mod"},
+     {"text": "⚙️ Settings",        "callback_data": "menu:settings"}],
+    [{"text": "📅 Scheduling",      "callback_data": "menu:schedule"},
+     {"text": "📝 Notes & Filters", "callback_data": "menu:notes"}],
+    [{"text": "📊 Analytics",       "callback_data": "menu:analytics"},
+     {"text": "🔗 Federations",     "callback_data": "menu:federation"}],
+    [{"text": "⭐ Karma",           "callback_data": "menu:karma"}],
+]}
+
+_BACK_KEYBOARD = {"inline_keyboard": [
+    [{"text": "← Back to menu", "callback_data": "menu:main"}],
+]}
+
+_MENU_SECTIONS = {
+    "mod": (
+        "<b>🔨 Moderation</b>\n\n"
+        "/ban — Permanently ban a user (reply or /ban @user)\n"
+        "/unban — Lift a ban so the user can rejoin\n"
+        "/kick — Remove a user (they can rejoin)\n"
+        "/mute [@user] [1h/1d] — Silence a user\n"
+        "/unmute — Restore a muted user's voice\n"
+        "/warn — Issue a warning; auto-punish at the limit\n"
+        "/unwarn — Remove the most recent warning\n"
+        "/warns [@user] — Show a user's warning count"
+    ),
+    "settings": (
+        "<b>⚙️ Settings</b>\n\n"
+        "/setwelcome — Set the join message\n"
+        "/setgoodbye — Set the leave message\n"
+        "/lock /unlock &lt;type&gt; — Block content (photo/video/sticker/link…)\n"
+        "/locks — List active content locks\n"
+        "/addblacklist /rmblacklist — Add or remove a banned word\n"
+        "/blacklist — View all banned words\n"
+        "/setflood &lt;n&gt; [sec] — Auto-act after N messages in a window\n"
+        "/setwarnlimit &lt;n&gt; — Warns before punishment (default 3)\n"
+        "/setwarnaction &lt;ban|kick|mute&gt; — Punishment at warn limit\n"
+        "/setwarnexpiry &lt;days&gt; — Warns expire after N days (0 = never)\n"
+        "/setlog &lt;channel_id&gt; — Forward mod actions to a log channel\n"
+        "/captcha &lt;on|off&gt; — Require join button click\n"
+        "/slowmode &lt;off|10s|30s|1m|5m|15m|1h&gt; — Slow mode delay\n"
+        "/setdrip &lt;on|off&gt; — DM new members at day 3 and day 7\n"
+        "/cas &lt;on|off&gt; — Auto-ban CAS-flagged users on join"
+    ),
+    "schedule": (
+        "<b>📅 Scheduled Messages</b>\n\n"
+        "/schedule &lt;when&gt; &lt;text&gt; — Post a message later\n"
+        "  <i>when:</i> 30m · 2h · 1d · 1w · or YYYY-MM-DD HH:MM\n\n"
+        "/schedules — List all pending scheduled messages\n"
+        "/cancelschedule &lt;id&gt; — Cancel a scheduled message"
+    ),
+    "notes": (
+        "<b>📝 Notes &amp; Filters</b>\n\n"
+        "/save &lt;name&gt; &lt;text&gt; — Save a note (reply to save that message)\n"
+        "/get &lt;name&gt; — Post a saved note in chat\n"
+        "/notes — List all saved notes\n"
+        "/clear &lt;name&gt; — Delete a note\n\n"
+        "/filter &lt;keyword&gt; &lt;reply&gt; — Auto-reply when keyword is sent\n"
+        "/stop &lt;keyword&gt; — Remove an auto-reply filter\n"
+        "/filters — List all active keyword filters"
+    ),
+    "analytics": (
+        "<b>📊 Analytics</b> <i>(admin only)</i>\n\n"
+        "/stats — Member count and activity summary\n"
+        "/activity — Daily message chart (7 days)\n"
+        "/top — Top 10 most active members\n"
+        "/modlog — Recent moderation actions\n"
+        "/insights — Churn risk and engagement signals\n"
+        "/churnrisk — Members who went quiet after being active\n\n"
+        "/health — Community health score (0–100)\n"
+        "/activation — % of new members who posted within 24h/72h/7d\n"
+        "/segment [type] — Members by activity segment\n"
+        "/distinct [days] — Unique posters in last N days\n"
+        "/export [days] — CSV of daily stats\n"
+        "/cohorts — Join cohort retention CSV\n"
+        "/funnel [weeks] — Activation funnel report\n"
+        "/digestnow [daily|weekly] — Send digest immediately"
+    ),
+    "federation": (
+        "<b>🔗 Federations</b>\n\n"
+        "/newfed &lt;name&gt; — Create a ban federation\n"
+        "/joinfed &lt;id&gt; — Join your group to a federation\n"
+        "/leavefed — Leave the current federation\n"
+        "/fban @user [reason] — Federation-ban across all member groups\n"
+        "/unfban @user — Lift a federation ban\n"
+        "/fedinfo — Show federation details and member groups"
+    ),
+    "karma": (
+        "<b>⭐ Karma</b>\n\n"
+        "/rep @user — Give +1 reputation to a member\n"
+        "/topkarma — Leaderboard of top-reputation members"
+    ),
+}
+
 _HELP_TEXT = (
     "<b>V4NGRD — Premium Group Manager</b>\n"
     "Add me to a group, make me admin, then use these commands:\n"
@@ -215,6 +316,49 @@ _COMMAND_HELP = {
 }
 
 
+def _send_main_menu(chat_id):
+    import json
+    tg.api_call("sendMessage", {
+        "chat_id": chat_id,
+        "text": _WELCOME_TEXT,
+        "parse_mode": "HTML",
+        "reply_markup": json.dumps(_MAIN_MENU_KEYBOARD),
+    })
+
+
+def handle_menu_callback(cb):
+    import json
+    cq_id = cb["id"]
+    data = cb.get("data", "")
+    msg = cb.get("message", {})
+    chat_id = msg.get("chat", {}).get("id")
+    message_id = msg.get("message_id")
+
+    if not data.startswith("menu:") or not chat_id or not message_id:
+        return False
+
+    section = data[len("menu:"):]
+    tg.answer_callback_query(cq_id)
+
+    if section == "main":
+        tg.try_call("editMessageText", {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": _WELCOME_TEXT,
+            "parse_mode": "HTML",
+            "reply_markup": json.dumps(_MAIN_MENU_KEYBOARD),
+        })
+    elif section in _MENU_SECTIONS:
+        tg.try_call("editMessageText", {
+            "chat_id": chat_id,
+            "message_id": message_id,
+            "text": _MENU_SECTIONS[section],
+            "parse_mode": "HTML",
+            "reply_markup": json.dumps(_BACK_KEYBOARD),
+        })
+    return True
+
+
 def handle_private(message):
     text = message.get("text") or ""
     chat_id = message["chat"]["id"]
@@ -224,7 +368,7 @@ def handle_private(message):
         return
     cmd = parts[0].split("@")[0].lower()
     if cmd == "/start":
-        tg.api_call("sendMessage", {"chat_id": chat_id, "text": _HELP_TEXT, "parse_mode": "HTML"})
+        _send_main_menu(chat_id)
     elif cmd == "/help":
         if len(parts) > 1:
             key = parts[1].lstrip("/").lower()
@@ -236,7 +380,7 @@ def handle_private(message):
                     "text": f"No help entry for <code>{key}</code>. Send /start to see all commands.",
                     "parse_mode": "HTML"})
         else:
-            tg.api_call("sendMessage", {"chat_id": chat_id, "text": _HELP_TEXT, "parse_mode": "HTML"})
+            _send_main_menu(chat_id)
 
 
 def handle_message(state, message):
@@ -310,7 +454,9 @@ def handle_update(state, update):
         handle_message(state, update["message"])
     elif "callback_query" in update:
         cb = update["callback_query"]
-        if not community.handle_welcome_callback(state, cb):
+        if handle_menu_callback(cb):
+            pass
+        elif not community.handle_welcome_callback(state, cb):
             captcha.handle_callback(state, cb)
     elif "message_reaction" in update:
         karma.handle_reaction(state, update["message_reaction"])
