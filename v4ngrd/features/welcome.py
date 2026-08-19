@@ -1,4 +1,5 @@
 from .. import storage, tg, util
+from ..analytics import community
 from . import captcha
 
 
@@ -32,7 +33,10 @@ def handle_join(state, chat_id, message):
         if group["settings"]["captcha_enabled"]:
             captcha.start(state, chat_id, new_member["id"], text)
         else:
-            tg.send_message(chat_id, text)
+            reply_markup = {"inline_keyboard": [[
+                {"text": "Start here ▶", "callback_data": f"welcome:{new_member['id']}"}
+            ]]}
+            tg.send_message(chat_id, text, reply_markup=reply_markup)
 
 
 def handle_leave(state, chat_id, message):

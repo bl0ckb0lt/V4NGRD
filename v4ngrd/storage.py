@@ -21,6 +21,7 @@ DEFAULT_SETTINGS = {
     "captcha_timeout_sec": config.DEFAULT_CAPTCHA_TIMEOUT_SEC,
     "log_channel_id": None,
     "federation_id": None,
+    "orientation_text": None,
 }
 
 
@@ -90,6 +91,11 @@ def get_member(group, user_id, defaults=None):
             "warns": 0, "muted_until": None, "message_count": 0,
             "last_active": now_ts(), "rep": 0, "captcha_deadline": None,
             "captcha_verified": True, "recent_msgs": [], "left_date": None,
+            # Community analytics fields
+            "invite_source": None,
+            "clicked_welcome_at": None,
+            "first_message_at": None,
+            "third_message_at": None,
         }
         if defaults:
             state_member = group["members"][key]

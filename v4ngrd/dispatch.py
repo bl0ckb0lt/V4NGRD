@@ -2,7 +2,7 @@ import sys
 import traceback
 
 from . import storage, tg, util
-from .analytics import core
+from .analytics import core, community
 from .features import antiflood, blacklist, locks, welcome, captcha, karma
 from .features import filters as msg_filters
 from .commands import moderation, settings, notes, federation, analytics_cmds
@@ -55,9 +55,13 @@ COMMANDS = {
     "modlog": analytics_cmds.cmd_modlog,
     "digestnow": analytics_cmds.cmd_digestnow,
     "insights": analytics_cmds.cmd_insights,
-    "cohorts": analytics_cmds.cmd_cohorts,
     "churnrisk": analytics_cmds.cmd_churnrisk,
-    "export": analytics_cmds.cmd_export,
+
+    # Community analytics commands (replace legacy export/cohorts)
+    "export": community.cmd_export,
+    "cohorts": community.cmd_cohorts,
+    "funnel": community.cmd_funnel,
+    "distinct": community.cmd_distinct,
 
     "rep": cmd_karma.cmd_rep,
     "topkarma": cmd_karma.cmd_topkarma,
@@ -117,13 +121,16 @@ def handle_message(state, message):
     msg_filters.check(state, chat_id, message)
     core.record_message_stat(group, member)
     karma.record_author(state, chat_id, message["message_id"], actor["id"])
+    community.on_message_sent(state, chat_id, message)
 
 
 def handle_update(state, update):
     if "message" in update:
         handle_message(state, update["message"])
     elif "callback_query" in update:
-        captcha.handle_callback(state, update["callback_query"])
+        cb = update["callback_query"]
+        if not community.handle_welcome_callback(state, cb):
+            captcha.handle_callback(state, cb)
     elif "message_reaction" in update:
         karma.handle_reaction(state, update["message_reaction"])
 
