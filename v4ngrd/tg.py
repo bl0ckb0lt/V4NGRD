@@ -172,6 +172,11 @@ def answer_callback_query(callback_query_id, text=None, show_alert=False):
     return try_call("answerCallbackQuery", params)
 
 
+def set_slow_mode(chat_id, slow_mode_delay):
+    """Set slow mode delay in seconds. Valid values: 0,10,30,60,300,900,3600,21600,86400."""
+    return try_call("setChatSlowModeDelay", {"chat_id": chat_id, "slow_mode_delay": slow_mode_delay})
+
+
 def is_admin(chat_id, user_id):
     member = get_chat_member(chat_id, user_id)
     if not member:

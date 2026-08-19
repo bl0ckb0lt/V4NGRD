@@ -1,6 +1,8 @@
 from .. import storage, tg, util
 from .. import config
 
+_VALID_SLOW_DELAYS = [0, 10, 30, 60, 300, 900, 3600, 21600, 86400]
+
 
 def _require_admin(message, chat_id):
     return tg.is_admin(chat_id, message["from"]["id"])
@@ -123,6 +125,17 @@ def cmd_setwarnaction(state, chat_id, message, args):
     tg.send_message(chat_id, f"Warn limit action set to {args[0]}.")
 
 
+def cmd_setwarnexpiry(state, chat_id, message, args):
+    if not _require_admin(message, chat_id):
+        return tg.send_message(chat_id, "Only admins can do that.")
+    if not args or not args[0].isdigit():
+        return tg.send_message(chat_id, "Usage: /setwarnexpiry <days> (0 = never expire)")
+    group = storage.get_group(state, chat_id)
+    days = int(args[0])
+    group["settings"]["warn_expiry_days"] = days
+    tg.send_message(chat_id, f"Warns expire after {days} days." if days else "Warn expiry disabled.")
+
+
 def cmd_setlog(state, chat_id, message, args):
     if not _require_admin(message, chat_id):
         return tg.send_message(chat_id, "Only admins can do that.")
@@ -142,3 +155,29 @@ def cmd_captcha(state, chat_id, message, args):
     group = storage.get_group(state, chat_id)
     group["settings"]["captcha_enabled"] = (args[0] == "on")
     tg.send_message(chat_id, f"Captcha verification turned {args[0]}.")
+
+
+def cmd_slowmode(state, chat_id, message, args):
+    if not _require_admin(message, chat_id):
+        return tg.send_message(chat_id, "Only admins can do that.")
+    if not args:
+        return tg.send_message(chat_id, "Usage: /slowmode <seconds|off>\nValid: 0 10 30 60 300 900 3600 21600 86400")
+    raw = args[0].lower()
+    if raw in ("off", "0"):
+        delay = 0
+    elif raw.isdigit():
+        delay = min(_VALID_SLOW_DELAYS, key=lambda x: abs(x - int(raw)))
+    else:
+        return tg.send_message(chat_id, "Usage: /slowmode <seconds|off>")
+    tg.set_slow_mode(chat_id, delay)
+    tg.send_message(chat_id, "Slow mode disabled." if delay == 0 else f"Slow mode set to {delay}s.")
+
+
+def cmd_setdrip(state, chat_id, message, args):
+    if not _require_admin(message, chat_id):
+        return tg.send_message(chat_id, "Only admins can do that.")
+    if not args or args[0] not in ("on", "off"):
+        return tg.send_message(chat_id, "Usage: /setdrip <on|off>")
+    group = storage.get_group(state, chat_id)
+    group["settings"]["drip_enabled"] = (args[0] == "on")
+    tg.send_message(chat_id, f"Onboarding drip turned {args[0]}.")

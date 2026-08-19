@@ -22,6 +22,10 @@ DEFAULT_SETTINGS = {
     "log_channel_id": None,
     "federation_id": None,
     "orientation_text": None,
+    "warn_expiry_days": 0,
+    "drip_enabled": False,
+    "drip_day3_text": "Hey {first_name}, you haven't said hello in {group} yet! Come introduce yourself.",
+    "drip_day7_text": "It's been a week, {first_name}! Share something with {group}.",
 }
 
 
@@ -88,14 +92,15 @@ def get_member(group, user_id, defaults=None):
     if key not in group["members"]:
         group["members"][key] = {
             "first_name": "", "username": "", "join_date": now_ts(),
-            "warns": 0, "muted_until": None, "message_count": 0,
+            "warns": 0, "warn_times": [], "muted_until": None, "message_count": 0,
             "last_active": now_ts(), "rep": 0, "captcha_deadline": None,
             "captcha_verified": True, "recent_msgs": [], "left_date": None,
-            # Community analytics fields
             "invite_source": None,
             "clicked_welcome_at": None,
             "first_message_at": None,
             "third_message_at": None,
+            "drip3_sent": False,
+            "drip7_sent": False,
         }
         if defaults:
             state_member = group["members"][key]

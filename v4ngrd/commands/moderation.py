@@ -124,11 +124,13 @@ def cmd_warn(state, chat_id, message, args):
     group = storage.get_group(state, chat_id)
     member = storage.get_member(group, user_id)
     member["warns"] += 1
+    member.setdefault("warn_times", []).append(storage.now_ts())
     modlog.record(state, chat_id, "warn", user_id, display, actor["id"], util.display_name(actor), reason)
 
     limit = group["settings"]["warn_limit"]
     if member["warns"] >= limit:
         member["warns"] = 0
+        member["warn_times"] = []
         _apply_warn_limit_action(state, chat_id, user_id, display, actor)
     else:
         tg.send_message(chat_id, f"Warned {util.mention(user_id, display)} ({member['warns']}/{limit}).")
@@ -144,6 +146,9 @@ def cmd_unwarn(state, chat_id, message, args):
     group = storage.get_group(state, chat_id)
     member = storage.get_member(group, user_id)
     member["warns"] = max(0, member["warns"] - 1)
+    times = member.get("warn_times", [])
+    if times:
+        member["warn_times"] = times[:-1]
     modlog.record(state, chat_id, "unwarn", user_id, display, actor["id"], util.display_name(actor), reason)
     tg.send_message(chat_id, f"Removed a warn from {util.mention(user_id, display)} ({member['warns']} remaining).")
 
