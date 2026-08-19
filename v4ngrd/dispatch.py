@@ -108,8 +108,13 @@ _HELP_TEXT = (
 def handle_private(message):
     text = message.get("text") or ""
     chat_id = message["chat"]["id"]
+    print(f"[private] chat_id={chat_id} text={text!r}", flush=True)
     if text.startswith("/start") or text.startswith("/help"):
-        tg.send_message(chat_id, _HELP_TEXT)
+        tg.api_call("sendMessage", {
+            "chat_id": chat_id,
+            "text": _HELP_TEXT,
+            "parse_mode": "HTML",
+        })
 
 
 def handle_message(state, message):
