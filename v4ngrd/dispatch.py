@@ -57,7 +57,7 @@ COMMANDS = {
     "insights": analytics_cmds.cmd_insights,
     "churnrisk": analytics_cmds.cmd_churnrisk,
 
-    # Community analytics commands (replace legacy export/cohorts)
+    # Community analytics commands
     "export": community.cmd_export,
     "cohorts": community.cmd_cohorts,
     "funnel": community.cmd_funnel,
@@ -67,11 +67,47 @@ COMMANDS = {
     "topkarma": cmd_karma.cmd_topkarma,
 }
 
+_HELP_TEXT = (
+    "<b>V4NGRD — Group Manager</b>\n\n"
+    "Add me to a group and make me an admin to get started.\n\n"
+    "<b>Moderation</b>\n"
+    "/ban /unban /kick /mute /unmute /warn /unwarn /warns\n\n"
+    "<b>Settings</b>\n"
+    "/setwelcome /setgoodbye /lock /unlock /locks\n"
+    "/addblacklist /rmblacklist /blacklist\n"
+    "/setflood /setwarnlimit /setwarnaction /setlog /captcha\n\n"
+    "<b>Notes &amp; Filters</b>\n"
+    "/save /get /notes /clear /filter /stop /filters\n\n"
+    "<b>Analytics (admin only)</b>\n"
+    "/stats /activity /top /modlog /insights /churnrisk\n"
+    "/export [days] /cohorts /funnel [weeks] /distinct [days]\n"
+    "/digestnow [daily|weekly]\n\n"
+    "<b>Federations</b>\n"
+    "/newfed /joinfed /leavefed /fban /unfban /fedinfo\n\n"
+    "<b>Karma</b>\n"
+    "/rep /topkarma"
+)
+
+
+def handle_private(message):
+    """Respond to /start and /help in private chat."""
+    text = message.get("text") or ""
+    chat_id = message["chat"]["id"]
+    if text.startswith("/start") or text.startswith("/help"):
+        tg.send_message(chat_id, _HELP_TEXT)
+
 
 def handle_message(state, message):
     chat = message.get("chat", {})
-    if chat.get("type") not in ("group", "supergroup"):
+    chat_type = chat.get("type")
+
+    if chat_type == "private":
+        handle_private(message)
         return
+
+    if chat_type not in ("group", "supergroup"):
+        return
+
     chat_id = chat["id"]
     group = storage.get_group(state, chat_id)
     group["title"] = chat.get("title", group.get("title", ""))
