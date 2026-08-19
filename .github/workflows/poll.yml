@@ -17,6 +17,7 @@ concurrency:
 jobs:
   poll:
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v4
 
@@ -25,6 +26,7 @@ jobs:
           python-version: "3.12"
 
       - name: Run bot cycle
+        timeout-minutes: 2
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: python group_manager.py

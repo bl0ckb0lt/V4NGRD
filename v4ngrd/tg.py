@@ -54,6 +54,8 @@ def try_call(method, params=None, files=None):
 
 
 def get_updates(offset, timeout=0):
+    # curl must wait longer than the Telegram long-poll timeout
+    curl_timeout = timeout + 15
     return api_call("getUpdates", {
         "offset": offset,
         "timeout": timeout,
@@ -61,7 +63,7 @@ def get_updates(offset, timeout=0):
             "message", "edited_message", "callback_query",
             "chat_member", "my_chat_member", "message_reaction",
         ]),
-    })
+    }, timeout=curl_timeout)
 
 
 def send_message(chat_id, text, reply_to=None, parse_mode="HTML",
