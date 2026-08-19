@@ -53,7 +53,7 @@ def cmd_unlock(state, chat_id, message, args):
 def cmd_locks(state, chat_id, message, args):
     group = storage.get_group(state, chat_id)
     locks = group["settings"]["locks"]
-    lines = [f"{'🔒' if v else '🔓'} {k}" for k, v in locks.items()]
+    lines = [f"{'\U0001f512' if v else '\U0001f513'} {k}" for k, v in locks.items()]
     tg.send_message(chat_id, "<b>Content locks</b>\n" + "\n".join(lines))
 
 
@@ -181,3 +181,13 @@ def cmd_setdrip(state, chat_id, message, args):
     group = storage.get_group(state, chat_id)
     group["settings"]["drip_enabled"] = (args[0] == "on")
     tg.send_message(chat_id, f"Onboarding drip turned {args[0]}.")
+
+
+def cmd_cas(state, chat_id, message, args):
+    if not _require_admin(message, chat_id):
+        return tg.send_message(chat_id, "Only admins can do that.")
+    if not args or args[0] not in ("on", "off"):
+        return tg.send_message(chat_id, "Usage: /cas <on|off>")
+    group = storage.get_group(state, chat_id)
+    group["settings"]["cas_enabled"] = (args[0] == "on")
+    tg.send_message(chat_id, f"CAS anti-spam turned {args[0]}.")

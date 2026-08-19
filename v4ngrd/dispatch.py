@@ -3,11 +3,12 @@ import traceback
 
 from . import storage, tg, util
 from .analytics import core, community
-from .features import antiflood, blacklist, locks, welcome, captcha, karma
+from .features import antiflood, blacklist, locks, welcome, captcha, karma, cas
 from .features import filters as msg_filters
 from .commands import moderation, settings, notes, federation, analytics_cmds
 from .commands import filters as cmd_filters
 from .commands import karma as cmd_karma
+from .commands import schedule as schedule_cmd
 
 COMMANDS = {
     "ban": moderation.cmd_ban,
@@ -35,6 +36,7 @@ COMMANDS = {
     "captcha": settings.cmd_captcha,
     "slowmode": settings.cmd_slowmode,
     "setdrip": settings.cmd_setdrip,
+    "cas": settings.cmd_cas,
 
     "filter": cmd_filters.cmd_filter,
     "stop": cmd_filters.cmd_stop,
@@ -68,6 +70,10 @@ COMMANDS = {
     "activation": community.cmd_activation,
     "segment": community.cmd_segment,
 
+    "schedule": schedule_cmd.cmd_schedule,
+    "schedules": schedule_cmd.cmd_schedules,
+    "cancelschedule": schedule_cmd.cmd_cancelschedule,
+
     "rep": cmd_karma.cmd_rep,
     "topkarma": cmd_karma.cmd_topkarma,
 }
@@ -81,7 +87,10 @@ _HELP_TEXT = (
     "/setwelcome /setgoodbye /lock /unlock /locks\n"
     "/addblacklist /rmblacklist /blacklist\n"
     "/setflood /setwarnlimit /setwarnaction /setwarnexpiry\n"
-    "/setlog /captcha /slowmode /setdrip\n\n"
+    "/setlog /captcha /slowmode /setdrip /cas\n\n"
+    "<b>Scheduling</b>\n"
+    "/schedule <when> <text> — when: 30m 2h 1d or YYYY-MM-DD HH:MM\n"
+    "/schedules /cancelschedule <id>\n\n"
     "<b>Notes &amp; Filters</b>\n"
     "/save /get /notes /clear /filter /stop /filters\n\n"
     "<b>Analytics (admin only)</b>\n"
@@ -122,9 +131,12 @@ def handle_message(state, message):
         for new_member in message["new_chat_members"]:
             if new_member.get("is_bot"):
                 continue
-            if federation.check_fban_on_join(state, chat_id, new_member["id"]):
-                tg.ban_chat_member(chat_id, new_member["id"])
-                storage.append_event(chat_id, "fban_autoban", user_id=new_member["id"])
+            user_id = new_member["id"]
+            if federation.check_fban_on_join(state, chat_id, user_id):
+                tg.ban_chat_member(chat_id, user_id)
+                storage.append_event(chat_id, "fban_autoban", user_id=user_id)
+                return
+            if cas.check_on_join(state, chat_id, user_id):
                 return
         welcome.handle_join(state, chat_id, message)
         return

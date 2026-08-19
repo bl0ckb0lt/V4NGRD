@@ -1,5 +1,6 @@
 from .features import captcha
 from .analytics import community
+from .commands import schedule as schedule_cmd
 
 
 def run_all(state):
@@ -8,3 +9,4 @@ def run_all(state):
     community.daily_rollup_all(state)
     community.drip_sweep(state)
     community.warn_expiry_sweep(state)
+    schedule_cmd.sweep(state)

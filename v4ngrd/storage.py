@@ -26,6 +26,7 @@ DEFAULT_SETTINGS = {
     "drip_enabled": False,
     "drip_day3_text": "Hey {first_name}, you haven't said hello in {group} yet! Come introduce yourself.",
     "drip_day7_text": "It's been a week, {first_name}! Share something with {group}.",
+    "cas_enabled": False,
 }
 
 
@@ -51,6 +52,7 @@ def empty_group():
         "filters": {},
         "stats": {"daily": {}},
         "modlog": [],
+        "scheduled_messages": [],
     }
 
 
