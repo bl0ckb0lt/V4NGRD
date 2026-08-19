@@ -11,6 +11,9 @@ on:
         required: false
         default: "daily"
 
+permissions:
+  contents: write
+
 concurrency:
   group: v4ngrd-state
   cancel-in-progress: false
