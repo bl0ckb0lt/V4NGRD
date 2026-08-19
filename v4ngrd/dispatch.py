@@ -30,8 +30,11 @@ COMMANDS = {
     "setflood": settings.cmd_setflood,
     "setwarnlimit": settings.cmd_setwarnlimit,
     "setwarnaction": settings.cmd_setwarnaction,
+    "setwarnexpiry": settings.cmd_setwarnexpiry,
     "setlog": settings.cmd_setlog,
     "captcha": settings.cmd_captcha,
+    "slowmode": settings.cmd_slowmode,
+    "setdrip": settings.cmd_setdrip,
 
     "filter": cmd_filters.cmd_filter,
     "stop": cmd_filters.cmd_stop,
@@ -57,11 +60,13 @@ COMMANDS = {
     "insights": analytics_cmds.cmd_insights,
     "churnrisk": analytics_cmds.cmd_churnrisk,
 
-    # Community analytics commands
     "export": community.cmd_export,
     "cohorts": community.cmd_cohorts,
     "funnel": community.cmd_funnel,
     "distinct": community.cmd_distinct,
+    "health": community.cmd_health,
+    "activation": community.cmd_activation,
+    "segment": community.cmd_segment,
 
     "rep": cmd_karma.cmd_rep,
     "topkarma": cmd_karma.cmd_topkarma,
@@ -75,11 +80,13 @@ _HELP_TEXT = (
     "<b>Settings</b>\n"
     "/setwelcome /setgoodbye /lock /unlock /locks\n"
     "/addblacklist /rmblacklist /blacklist\n"
-    "/setflood /setwarnlimit /setwarnaction /setlog /captcha\n\n"
+    "/setflood /setwarnlimit /setwarnaction /setwarnexpiry\n"
+    "/setlog /captcha /slowmode /setdrip\n\n"
     "<b>Notes &amp; Filters</b>\n"
     "/save /get /notes /clear /filter /stop /filters\n\n"
     "<b>Analytics (admin only)</b>\n"
     "/stats /activity /top /modlog /insights /churnrisk\n"
+    "/health /activation /segment [type]\n"
     "/export [days] /cohorts /funnel [weeks] /distinct [days]\n"
     "/digestnow [daily|weekly]\n\n"
     "<b>Federations</b>\n"
@@ -90,7 +97,6 @@ _HELP_TEXT = (
 
 
 def handle_private(message):
-    """Respond to /start and /help in private chat."""
     text = message.get("text") or ""
     chat_id = message["chat"]["id"]
     if text.startswith("/start") or text.startswith("/help"):
@@ -169,6 +175,8 @@ def handle_update(state, update):
             captcha.handle_callback(state, cb)
     elif "message_reaction" in update:
         karma.handle_reaction(state, update["message_reaction"])
+    elif "chat_member" in update:
+        community.handle_chat_member(state, update["chat_member"])
 
 
 def process_updates(state):
