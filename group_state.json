@@ -1,4 +1,54 @@
 {
-  "groups": {},
-  "last_update_id": 0
+  "groups": {
+    "-1001950141699": {
+      "filters": {},
+      "members": {},
+      "modlog": [],
+      "notes": {},
+      "settings": {
+        "antiflood": {
+          "action": "mute",
+          "limit": 5,
+          "window_sec": 10
+        },
+        "blacklist_words": [],
+        "captcha_enabled": false,
+        "captcha_timeout_sec": 300,
+        "federation_id": null,
+        "goodbye_message": "{first_name} has left {group}.",
+        "locks": {
+          "audio": false,
+          "document": false,
+          "forward": false,
+          "gif": false,
+          "link": false,
+          "photo": false,
+          "poll": false,
+          "sticker": false,
+          "video": false,
+          "voice": false
+        },
+        "log_channel_id": null,
+        "orientation_text": null,
+        "warn_action": "ban",
+        "warn_limit": 3,
+        "welcome_message": "Welcome {first_name} to {group}! You are member #{count}."
+      },
+      "stats": {
+        "daily": {
+          "2026-08-19": {
+            "joins": 0,
+            "leaves": 0,
+            "members_eod": 0,
+            "messages": 0,
+            "replies": 0,
+            "top5_messages": 0,
+            "unique_posters": 0
+          }
+        }
+      },
+      "title": "CryptoCrazeKin"
+    }
+  },
+  "last_update_id": 657976956
 }
