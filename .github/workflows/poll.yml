@@ -4,7 +4,7 @@ on:
   push:
     branches: ["claude/v4ngrd-bot-dev-bf73x8"]
   schedule:
-    - cron: "*/2 * * * *"
+    - cron: "* * * * *"
   workflow_dispatch: {}
 
 permissions:
